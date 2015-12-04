@@ -246,9 +246,10 @@ static int completePendingRequest(struct Session *session,
     
     char *json                  = stringPrintf(NULL, "{"
                                                "\"session\":\"%s\","
+                                               "\"seq\": %d,"
                                                "\"data\":\"%s\""
                                                "}",
-                                               session->sessionKey, data);
+                                               session->sessionKey, session->sent++, data);
     free(data);
     HttpConnection *http        = session->http;
     char *response              = stringPrintf(NULL,

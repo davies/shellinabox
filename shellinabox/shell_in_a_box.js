@@ -110,6 +110,8 @@ function ShellInABox(url, container) {
   this.keysInFlight = false;
   this.connected    = false;
   this.superClass.constructor.call(this, container);
+  this.buffer       = [];
+  this.lastSeq      = -1;
 
   // We have to initiate the first XMLHttpRequest from a timer. Otherwise,
   // Chrome never realizes that the page has loaded.
@@ -172,7 +174,7 @@ ShellInABox.prototype.sendRequest = function(request) {
                                (this.session ? '&session=' +
                                 encodeURIComponent(this.session) : '&rooturl='+
                                 encodeURIComponent(this.rooturl));
-  request.setRequestHeader('Content-Length', content.length);
+  // request.setRequestHeader('Content-Length', content.length);
 
   request.onreadystatechange = function(shellInABox) {
     return function() {
@@ -191,8 +193,21 @@ ShellInABox.prototype.onReadyStateChange = function(request) {
     if (request.status == 200) {
       this.connected = true;
       var response   = eval('(' + request.responseText + ')');
-      if (response.data) {
-        this.vt100(response.data);
+      this.buffer.push(response);
+      this.buffer.sort(function cmp(a, b) {
+          return a.seq - b.seq;
+      });
+      buffers = this.buffer;
+      while (this.buffer.length > 0 &&
+              (this.buffer[0].seq == this.lastSeq + 1
+               || this.buffer[0].seq < this.lastSeq
+               || this.buffer.length > 5)) {
+          response = this.buffer.shift();
+          if (response.data) {
+            this.vt100(response.data);
+          }
+          console.log(response.seq, response.data);
+          this.lastSeq = response.seq;
       }
 
       if (!response.session ||
@@ -230,7 +245,7 @@ ShellInABox.prototype.sendKeys = function(keys) {
                                  '&height=' + this.terminalHeight +
                                  '&session=' +encodeURIComponent(this.session)+
                                  '&keys=' + encodeURIComponent(keys);
-    request.setRequestHeader('Content-Length', content.length);
+    // request.setRequestHeader('Content-Length', content.length);
     request.onreadystatechange = function(shellInABox) {
       return function() {
                try {
