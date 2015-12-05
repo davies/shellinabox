@@ -206,7 +206,6 @@ ShellInABox.prototype.onReadyStateChange = function(request) {
           if (response.data) {
             this.vt100(response.data);
           }
-          console.log(response.seq, response.data);
           this.lastSeq = response.seq;
       }
 

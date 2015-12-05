@@ -1580,7 +1580,7 @@ VT100.prototype.updateHeight = function() {
 };
 
 VT100.prototype.updateNumScrollbackLines = function() {
-  var scrollback          = Math.floor(
+  var scrollback          = Math.ceil(
                                 this.console[this.currentScreen].offsetHeight /
                                 this.cursorHeight) -
                             this.terminalHeight;
